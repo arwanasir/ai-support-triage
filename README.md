@@ -1,1 +1,1 @@
-# ai-ticket-triage
+# ai-support-triage
