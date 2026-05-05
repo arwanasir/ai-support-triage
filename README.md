@@ -1,84 +1,260 @@
 # ai-support-triage
 
-A service-based intelligent triage system designed for processing high-frequency webhooks and automated data classification.
+# AI Support Triage System
+
+A backend system for ingesting, deduplicating, and processing high-frequency support tickets via webhook ingestion.  
+Designed as a modular monolith with a future-ready AI triage pipeline.
 
 ---
 
-## Architecture & Design
+# Overview
 
-The project utilizes a **Modular Monolith** architecture to ensure low-latency processing and type-safe data flow.
+This service processes incoming support tickets from external systems via webhook requests.  
+It ensures safe ingestion using idempotency, persists structured ticket data, and prepares jobs for downstream asynchronous processing (AI triage pipeline coming next).
 
-### Core Stack
+The system is designed with **production-style backend patterns** including:
 
-- **Runtime:** Node.js (v20+) with **TypeScript** for strict type safety.
-- **Web Framework:** **Fastify** (chosen for its superior overhead-to-performance ratio compared to Express).
-- **Data Layer:** **PostgreSQL** orchestrated with **Drizzle ORM** for lightweight, SQL-like interactions.
-- **Caching & Messaging:** **Redis** for asynchronous task queuing and state management.
-- **Orchestration:** **Docker Compose** for containerized database and cache services.
+- Idempotent request handling
+- Event-driven architecture readiness
+- Redis-backed caching layer
+- Strong schema validation
+- Structured relational data modeling
 
 ---
 
-## Professional Setup
+# Architecture
 
-### 1. Environment Preparation
+## System Design
 
-Create a `.env` file in the root directory and configure the following variables:
+Modular Monolith with clear domain separation:
+
+- API Layer (Fastify)
+- Data Layer (PostgreSQL + Drizzle ORM)
+- Cache Layer (Redis)
+- Async Layer (BullMQ-ready architecture)
+
+---
+
+## Tech Stack
+
+- **Runtime:** Node.js (v20+)
+- **Language:** TypeScript (strict mode)
+- **Framework:** Fastify
+- **Database:** PostgreSQL
+- **ORM:** Drizzle ORM
+- **Cache / Idempotency Store:** Redis (ioredis)
+- **Containerization:** Docker Compose
+- **Validation:** Zod
+
+---
+
+# Current Implementation (Completed Step)
+
+## Ticket Ingestion Endpoint
+
+### `POST /webhooks/tickets`
+
+Accepts:
+
+```json
+{
+  "subject": "string",
+  "body": "string",
+  "customer_email": "string (valid email)"
+}
+```
+
+## Idempotency Handling
+
+Each request requires:
+
+Idempotency-Key: <unique-key>
+
+### Behavior:
+
+- First request → ticket created + stored in Redis cache
+- Duplicate request (same key) → returns cached response
+- Prevents duplicate DB inserts under retries or network failures
+
+### Response Format
+
+```json
+{
+  "ticket_id": "uuid",
+  "status": "queued"
+}
+```
+
+### Request Flow
+
+```
+Request received at /webhooks/tickets
+Zod validates request body
+Idempotency-Key checked in Redis
+If exists → return cached response
+If not → continue processing
+Ticket inserted into PostgreSQL
+Response cached in Redis (24h TTL)
+Response returned to client
+```
+
+### Database Schema
+
+#### tickets
+
+```
+id (UUID, primary key)
+subject (varchar)
+body (text)
+customer_email (text)
+status (new → triaged → awaiting_review → sent → closed)
+priority (default: P3)
+category (default: other)
+sentiment (nullable)
+draft_reply (nullable)
+created_at
+updated_at
+```
+
+##### ai_runs (future stage)
+
+- Tracks LLM execution metadata:
+
+```
+model
+tokens
+cost
+latency
+response JSON
+```
+
+#### agents_action (future stage)
+
+- Tracks human agent decisions:
+- approve / edit / reject actions
+- final response submissions
+
+### API Testing
+
+- A full HTTP test suite is included in:
+
+```
+tickets.http
+```
+
+Covered Test Cases:
+
+1. Happy Path
+
+```
+Valid ticket creation with idempotency key
+```
+
+2. Duplicate Request
+
+```
+Same Idempotency-Key → returns cached response, no duplicate DB insert
+```
+
+3. Validation Failure
+
+```
+Missing required fields → returns 400 error (Zod validation)
+```
+
+### Setup & Installation
+
+1. Environment Variables
 
 ```env
-# Database Connection
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/triage_db
-
-# Redis Connection
 REDIS_URL=redis://localhost:6379
-
-# API Config
 PORT=3000
 NODE_ENV=development
 ```
 
-### 2. Infrastructure Initialization
-
-Spin up the persistent storage layers using Docker:
+2. Start Infrastructure
 
 ```bash
 docker-compose up -d db redis
 ```
 
-### 3. Dependency & Schema Management
-
-Install the workspace dependencies and push the schema to the database using the Drizzle Kit:
+3. Install Dependencies
 
 ```bash
 npm install
+```
+
+4. Run Database Migrations
+
+```bash
 npx drizzle-kit push
 ```
 
-### 4. Development Execution
-
-Run the API service locally to leverage full system resources:
+5. Start Development Server
 
 ```bash
 cd apps/api
-npm install
 npm run dev
 ```
 
-### Architecture
+### Key Design Decisions
 
-The project is structured as a Modular Monolith to balance development speed with future scalability:
+- Idempotency via Redis
+- Ensures webhook safety under retries or network instability.
+- Modular Monolith Structure
 
-- **API Layer:** Built with Fastify and Node.js for low-overhead, asynchronous webhook handling.
+Chosen to:
 
-- **Data Layer:** Managed by PostgreSQL with Drizzle ORM for type-safe database interactions and migrations.
+- Keep system simple in early stages
+- Maintain clear separation of concerns
+- Allow future extraction into microservices
+- Drizzle ORM
 
-- **Message Broker:** Redis is utilized for task queuing to ensure no webhook data is lost during high-traffic bursts.
+Used for:
 
-- **Orchestration:** Development environment orchestrated via Docker to ensure consistency across different machines.
+- Type-safe SQL queries
+- Minimal abstraction overhead
+- Predictable database behavior
+- Zod Validation
 
-### Trade-offs
+Ensures:
 
-- **Hybrid Runtime:** Running the database and cache in Docker while executing the API "on the metal" (locally). This bypasses common Docker memory resource limits (Exit Code 254) and provides significantly faster development feedback loops.
+- strict input validation
+- early rejection of malformed requests
+- type-safe request handling
+- Docker Strategy
 
-- **Drizzle ORM:** Chosen over heavier ORMs for its minimal abstraction layer and zero-runtime overhead, aligning with the goal of building a lightweight, high-performance service.
+Only database + Redis are containerized:
 
-- **Modular Monolith vs. Microservices:** Prioritizing a modular monolith initially to reduce dev-ops complexity while maintaining clear domain boundaries for future extraction.
+- API runs locally for fast iteration
+- reduces debugging friction
+- avoids unnecessary container overhead
+
+### Next Phase (Not Yet Implemented)
+
+- BullMQ triage queue integration
+- Worker-based ticket processing
+- AI classification pipeline
+- Structured LLM output validation
+- ai_runs logging implementation
+- ticket status transitions (triaged → awaiting_review)
+
+### Project Status
+
+```
+✔ Step 1: Infrastructure setup
+✔ Step 2: Ticket ingestion + idempotency (current)
+⏳ Step 3: Queue + worker system
+⏳ Step 4: AI triage pipeline
+⏳ Step 5: Agent review system
+```
+
+### Summary
+
+- This system is built to simulate a real-world support ticket pipeline with:
+
+- reliable ingestion
+- safe retry handling
+- future AI automation integration
+- structured backend architecture
