@@ -15,7 +15,7 @@ export const tickets = pgTable("tickets", {
   sentiment: varchar("sentiment", { length: 100 }),
   draftReply: text("draft_reply"), 
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").$onUpdate(() => new Date())
+  updatedAt: timestamp("updated_at").defaultNow().notNull()
 });
 
 

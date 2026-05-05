@@ -1,0 +1,32 @@
+### Test 1: Create a Ticket (The "Happy Path")
+POST http://localhost:3000/webhooks/tickets
+Content-Type: application/json
+Idempotency-Key: first-try-101
+
+{
+  "subject": "Internet is slow",
+  "body": "My connection has been dropping all morning.",
+  "customer_email": "arwa@example.com"
+}
+
+
+### Test 2: Duplicate Key (Testing Idempotency)
+POST http://localhost:3000/webhooks/tickets
+Content-Type: application/json
+Idempotency-Key: first-try-101
+
+{
+  "subject": "Internet is slow",
+  "body": "My connection has been dropping all morning.",
+  "customer_email": "arwa@example.com"
+}
+
+### Test 3: Bad Data (Testing Zod Validation)
+POST http://localhost:3000/webhooks/tickets
+Content-Type: application/json
+Idempotency-Key: error-test-99
+
+{
+  "subject": "Missing Body",
+  "customer_email": "user@test.com"
+}
