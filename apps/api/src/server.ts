@@ -1,6 +1,7 @@
 import fastify from 'fastify'
 import {serializerCompiler,validatorCompiler,ZodTypeProvider} from 'fastify-type-provider-zod'
 import { ticketRoutes } from './routes/tickets.js';
+import '../src/workers/workers.js';
 
 const server = fastify({
     logger:true
