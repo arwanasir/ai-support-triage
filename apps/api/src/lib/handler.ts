@@ -29,11 +29,6 @@ export async function requestHandler(req:FastifyRequest,reply:FastifyReply){
                 return reply.code(400).send({ error: "Invalid ticket data" });
         }
         console.error(error);
-        console.error("--- DB ERROR DETAILS ---");
-        console.error("Message:", error.message);
-        console.error("Detail:", error.detail); 
-        console.error("Hint:", error.hint);     
-        console.error("Code:", error.code);
         return reply.code(500).send({error: error.message,stack:error.stack})
     }
    

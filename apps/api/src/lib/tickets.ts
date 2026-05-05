@@ -3,6 +3,7 @@ import { tickets } from '../db/schema.js';
 import { Redis } from 'ioredis';
 import { InferSelectModel } from 'drizzle-orm';
 import {z} from 'zod';
+import { queue } from '../workers/queue.js';
 
 const ticketSchema = z.object({
     subject:z.string(),
@@ -37,11 +38,13 @@ export async function createAndCasheTicket(key:string,ticketData:unknown):Promis
         customerEmail: validateData.customer_email,
     
        
-    } as any ).returning();
+    }).returning();
+    
 
     if (!newTicket) {
         throw new Error("Failed to create ticket: No data returned from database");
     }
+     await queue.add('triage',{ticket_id:newTicket.id});
 
     await redis.set(
         `idempotency-key:${key}`,
@@ -51,4 +54,5 @@ export async function createAndCasheTicket(key:string,ticketData:unknown):Promis
     )
 
     return newTicket;
+    
 }
