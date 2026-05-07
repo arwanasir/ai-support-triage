@@ -1,5 +1,8 @@
 import { getExistingTicket,createAndCasheTicket } from "./tickets.js";
 import { FastifyRequest,FastifyReply } from "fastify";
+import { db } from '../db/index.js';
+import { tickets } from '../db/schema.js';
+import { ilike, sql, desc } from 'drizzle-orm';
 
 export async function requestHandler(req:FastifyRequest,reply:FastifyReply){
     try{
@@ -29,13 +32,47 @@ export async function requestHandler(req:FastifyRequest,reply:FastifyReply){
                 return reply.code(400).send({ error: "Invalid ticket data" });
         }
         console.error(error);
-        console.error("--- DB ERROR DETAILS ---");
-        console.error("Message:", error.message);
-        console.error("Detail:", error.detail); 
-        console.error("Hint:", error.hint);     
-        console.error("Code:", error.code);
         return reply.code(500).send({error: error.message,stack:error.stack})
     }
    
 
-}
+};
+
+
+export async function getTicketsHandler(request:FastifyRequest) {
+  const { page: pageStr, limit: limitStr, search } = request.query as { page: string; limit: string; search?: string };
+  const page = parseInt(pageStr, 10);
+  const limit = parseInt(limitStr, 10);
+  const offset = (page - 1) * limit;
+
+  // Simple search filter
+  const filters = search ? ilike(tickets.subject, `%${search}%`) : undefined;
+
+  // Fetch data and total count at the same time
+  const [data, totalResult] = await Promise.all([
+    db.select()
+      .from(tickets)
+      .where(filters)
+      .limit(limit)
+      .offset(offset)
+      .orderBy(desc(tickets.createdAt)),
+    db.select({ count: sql<number>`count(*)` })
+      .from(tickets)
+      .where(filters)
+  ]);
+
+  const totalCount = Number(totalResult?.[0]?.count ?? 0);
+  const totalPages = Math.ceil(totalCount / limit);
+
+  return {
+    items: data,
+    meta: {
+      totalCount,
+      totalPages,
+      currentPage: page,
+      limit,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1
+    }
+  };
+};
