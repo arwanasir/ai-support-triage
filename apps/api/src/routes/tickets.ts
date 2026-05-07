@@ -1,6 +1,7 @@
 import {z} from 'zod';
 import { FastifyInstance } from 'fastify';
-import { requestHandler } from '../lib/handler.js';
+import { requestHandler,getTicketsHandler } from '../lib/handler.js';
+import { GetTicketsSchema } from '../lib/schema.js';
 
 
 export async function ticketRoutes(fastify:FastifyInstance){
@@ -22,6 +23,11 @@ export async function ticketRoutes(fastify:FastifyInstance){
             
         },handler:requestHandler
     });
-
+    fastify.route({
+        method:'GET',
+        url:'/tickets',
+        schema:GetTicketsSchema,
+        handler:getTicketsHandler
+    })
 
 }
