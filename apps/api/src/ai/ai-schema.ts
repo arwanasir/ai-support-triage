@@ -8,4 +8,15 @@ export const aiOutputSchema = z.object({
   suggested_reply: z.string()
 });
 
+type AIAnalysis = z.infer<typeof aiOutputSchema>;
+
+
+export type AIServiceResult = {
+  analysis: AIAnalysis;
+  model: string;
+  inputTokens: number;
+  outputTokens: number;
+  latencyMs: number;
+  responseJson: unknown;
+};
 export type AIAnalysis = z.infer<typeof aiOutputSchema>;
