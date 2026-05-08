@@ -1,8 +1,10 @@
 import { getExistingTicket,createAndCasheTicket } from "./tickets.js";
 import { FastifyRequest,FastifyReply } from "fastify";
 import { db } from '../db/index.js';
-import { tickets } from '../db/schema.js';
 import { ilike, sql, desc } from 'drizzle-orm';
+import {success, z} from "zod";
+import { agents_action, tickets } from "../db/schema.js";
+import { eq } from "drizzle-orm";
 
 export async function requestHandler(req:FastifyRequest,reply:FastifyReply){
     try{
@@ -38,17 +40,13 @@ export async function requestHandler(req:FastifyRequest,reply:FastifyReply){
 
 };
 
-
 export async function getTicketsHandler(request:FastifyRequest) {
   const { page: pageStr, limit: limitStr, search } = request.query as { page: string; limit: string; search?: string };
   const page = parseInt(pageStr, 10);
   const limit = parseInt(limitStr, 10);
   const offset = (page - 1) * limit;
 
-  // Simple search filter
   const filters = search ? ilike(tickets.subject, `%${search}%`) : undefined;
-
-  // Fetch data and total count at the same time
   const [data, totalResult] = await Promise.all([
     db.select()
       .from(tickets)
@@ -76,3 +74,40 @@ export async function getTicketsHandler(request:FastifyRequest) {
     }
   };
 };
+
+
+ const replySchema = z.object({
+    decision:z.enum(["approve", "edit", "reject"]),
+    reply_text:z.string().min(1)
+    });
+
+ type reply_schema = z.infer<typeof replySchema>
+
+export async function replyHandler(request:FastifyRequest,reply:FastifyReply){
+    const {id} = request.params as {id:string};
+    const {decision,reply_text} = request.body as reply_schema;
+    const [ticket] = await db.select().from(tickets).where(eq(tickets.id,id));
+    if(!ticket){
+        throw new Error("ticket not found");
+    }
+    const newStatus = decision === "reject" ? "closed" : "sent";
+    await db.insert(agents_action).values({
+        toolName:decision,
+        input:{
+            ticket_id:id
+        },
+        output:{
+            reply_text
+        }
+    });
+    await db.update(tickets).set({
+        status:newStatus,
+        draftReply:reply_text
+    }).where(eq(tickets.id,id));
+
+    return reply.code(200).send({
+        success:true,
+        status:newStatus
+    })
+  
+}

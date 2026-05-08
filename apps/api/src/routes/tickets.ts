@@ -1,6 +1,6 @@
 import {z} from 'zod';
 import { FastifyInstance } from 'fastify';
-import { requestHandler,getTicketsHandler } from '../lib/handler.js';
+import { requestHandler,getTicketsHandler ,replyHandler} from '../lib/handler.js';
 import { GetTicketsSchema } from '../lib/schema.js';
 
 
@@ -28,6 +28,31 @@ export async function ticketRoutes(fastify:FastifyInstance){
         url:'/tickets',
         schema:GetTicketsSchema,
         handler:getTicketsHandler
+    });
+       
+    fastify.route({
+
+        method:'POST',
+        url: "/tickets/:id/reply",
+        schema:{
+            params:z.object({
+                id:z.string().uuid(),
+
+            }),
+            body:z.object({
+                decision:z.enum(["approve", "edit", "reject"]),
+                reply_text:z.string().min(1)
+            }),
+            response:{
+                200:z.object({
+                    success:z.boolean(),
+                    status:z.string()
+                })
+            }
+        },
+        handler:replyHandler
+    
     })
+
 
 }
