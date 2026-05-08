@@ -1,24 +1,28 @@
 # ai-support-triage
 
+# ai-support-triage
+
 # AI Support Triage System
 
-A backend system for ingesting, deduplicating, and processing high-frequency support tickets via webhook ingestion.  
-Designed as a modular monolith with a future-ready AI triage pipeline.
+A backend system for ingesting, deduplicating, and processing high-frequency support tickets via webhook ingestion and asynchronous AI triage.
+
+Designed as a modular monolith with an event-driven architecture and a future-ready AI + human-in-the-loop pipeline.
 
 ---
 
 # Overview
 
-This service processes incoming support tickets from external systems via webhook requests.  
-It ensures safe ingestion using idempotency, persists structured ticket data, and prepares jobs for downstream asynchronous processing (AI triage pipeline coming next).
+This service processes incoming support tickets from external systems via webhook requests.
 
-The system is designed with **production-style backend patterns** including:
+It ensures:
 
-- Idempotent request handling
-- Event-driven architecture readiness
-- Redis-backed caching layer
-- Strong schema validation
-- Structured relational data modeling
+- safe ingestion using idempotency
+- structured validation using Zod
+- asynchronous processing via a job queue
+- AI-based ticket classification and response generation
+- human review and final resolution flow
+
+The system simulates a real-world support automation pipeline used in production-grade SaaS systems.
 
 ---
 
@@ -31,7 +35,8 @@ Modular Monolith with clear domain separation:
 - API Layer (Fastify)
 - Data Layer (PostgreSQL + Drizzle ORM)
 - Cache Layer (Redis)
-- Async Layer (BullMQ-ready architecture)
+- Queue Layer (BullMQ)
+- Worker Layer (AI triage processor)
 
 ---
 
@@ -42,15 +47,16 @@ Modular Monolith with clear domain separation:
 - **Framework:** Fastify
 - **Database:** PostgreSQL
 - **ORM:** Drizzle ORM
+- **Queue:** BullMQ
 - **Cache / Idempotency Store:** Redis (ioredis)
-- **Containerization:** Docker Compose
 - **Validation:** Zod
+- **Containerization:** Docker Compose
 
 ---
 
-# Current Implementation (Completed Step)
+# Current Implementation (Completed)
 
-## Ticket Ingestion Endpoint
+## 1. Ticket Ingestion Endpoint
 
 ### `POST /webhooks/tickets`
 
@@ -98,6 +104,59 @@ Response cached in Redis (24h TTL)
 Response returned to client
 ```
 
+### Asynchronous Processing (BullMQ)
+
+#### After ticket creation:
+
+- Ticket is enqueued into triage queue
+- Worker consumes job from Redis queue
+
+### Worker-Based AI Triage Pipeline
+
+#### Worker responsibilities:
+
+Step flow:
+
+- Receive job from queue
+- Fetch ticket from database
+- Update status → `triaged`
+- Call AI service (Claude)
+  Validate AI output using Zod schema:
+  - category
+  - priority
+  - sentiment
+  - suggested_reply
+- Persist AI analysis to ticket
+- Insert record into ai_runs
+- Update ticket status → awaiting_review
+
+### Human Review Endpoint
+
+`POST /tickets/:id/reply`
+
+Used by support agents to:
+
+- approve AI response
+- edit AI response
+- reject AI response
+
+Behavior:
+
+- Inserts record into agents_action
+- Updates ticket status:
+- `approve → sent`
+- `reject → closed`
+  Stores final reply text
+
+### Ticket Lifecycle
+
+```
+new
+→ triaged
+→ awaiting_review
+→ sent / closed
+```
+
 ### Database Schema
 
 #### tickets
@@ -121,18 +180,28 @@ updated_at
 - Tracks LLM execution metadata:
 
 ```
+ticket_id
 model
-tokens
-cost
-latency
-response JSON
+prompt_hash
+input_tokens
+output_tokens
+cost_usd
+latency_ms
+response_json
+created_at
 ```
 
 #### agents_action (future stage)
 
 - Tracks human agent decisions:
-- approve / edit / reject actions
-- final response submissions
+
+```
+ticket_id
+tool_name (approve | edit | reject)
+input
+output
+created_at
+```
 
 ### API Testing
 
@@ -200,61 +269,55 @@ npm run dev
 
 ### Key Design Decisions
 
-- Idempotency via Redis
-- Ensures webhook safety under retries or network instability.
-- Modular Monolith Structure
+#### Idempotency via Redis
+
+`Ensures webhook safety under retries and network instability.`
+
+#### Event-driven Architecture
+
+`Decouples API layer from AI processing using BullMQ.`
+
+#### Worker-based AI processing
+
+`Keeps AI workload off the main API thread.`
+
+#### Modular Monolith
 
 Chosen to:
 
-- Keep system simple in early stages
-- Maintain clear separation of concerns
-- Allow future extraction into microservices
-- Drizzle ORM
+- simplify development
+- maintain clear domain boundaries
+- allow future microservice extraction
 
-Used for:
+Drizzle ORM
 
-- Type-safe SQL queries
-- Minimal abstraction overhead
-- Predictable database behavior
-- Zod Validation
+- lightweight
+- type-safe
+- minimal abstraction overhead
 
-Ensures:
+Zod Validation
 
-- strict input validation
-- early rejection of malformed requests
-- type-safe request handling
-- Docker Strategy
+- ensures strict runtime validation
+- guarantees AI + API data consistency
 
-Only database + Redis are containerized:
-
-- API runs locally for fast iteration
-- reduces debugging friction
-- avoids unnecessary container overhead
-
-### Next Phase (Not Yet Implemented)
-
-- BullMQ triage queue integration
-- Worker-based ticket processing
-- AI classification pipeline
-- Structured LLM output validation
-- ai_runs logging implementation
-- ticket status transitions (triaged → awaiting_review)
-
-### Project Status
+### Current Status
 
 ```
 ✔ Step 1: Infrastructure setup
-✔ Step 2: Ticket ingestion + idempotency (current)
-⏳ Step 3: Queue + worker system
-⏳ Step 4: AI triage pipeline
-⏳ Step 5: Agent review system
+✔ Step 2: Ticket ingestion + idempotency
+✔ Step 3: Queue + worker system (DONE)
+✔ Step 4: AI triage pipeline (DONE)
+✔ Step 5: Agent review system (DONE) ticket status transitions (triaged → awaiting_review)
 ```
 
 ### Summary
 
-- This system is built to simulate a real-world support ticket pipeline with:
+- This system now implements a full production-style support pipeline:
 
-- reliable ingestion
-- safe retry handling
-- future AI automation integration
-- structured backend architecture
+- webhook ingestion
+- idempotent processing
+- asynchronous queue system
+- AI classification + response generation
+- structured persistence (tickets + AI logs)
+- human review workflow
+- complete ticket lifecycle management
