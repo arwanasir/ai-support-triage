@@ -30,3 +30,22 @@ Idempotency-Key: error-test-99
   "subject": "Missing Body",
   "customer_email": "user@test.com"
 }
+
+---
+### NEW: GET ENDPOINTS (Pagination & Filtering)
+
+### Test 4: Get Tickets (Defaults - Page 1, Limit 10)
+GET http://localhost:3000/tickets
+Content-Type: application/json
+
+### Test 5: Get Tickets with Pagination (Page 2, 5 items)
+GET http://localhost:3000/tickets?page=2&limit=5
+Content-Type: application/json
+
+### Test 6: Search Tickets by Subject
+GET http://localhost:3000/tickets?search=Internet
+Content-Type: application/json
+
+### Test 7: Combined Search and Pagination
+GET http://localhost:3000/tickets?search=slow&page=1&limit=2
+Content-Type: application/json

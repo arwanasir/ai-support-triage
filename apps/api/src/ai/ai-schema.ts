@@ -19,3 +19,4 @@ export type AIServiceResult = {
   latencyMs: number;
   responseJson: unknown;
 };
+export type AIAnalysis = z.infer<typeof aiOutputSchema>;
