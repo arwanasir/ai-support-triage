@@ -47,8 +47,6 @@ Return ONLY valid JSON. Do NOT include any explanation, text, or formatting outs
 
 ---
 
-<<<<<<< HEAD
-=======
 
 --------------------
 ### Example
@@ -67,7 +65,6 @@ Output:
 
 ---
 
->>>>>>> 921a8ea (feat: complete ticket triage pipeline with AI worker and reply workflow)
 ## Example
 
 Input:
@@ -84,8 +81,6 @@ Output:
 
 ---
 
-<<<<<<< HEAD
-=======
 ### Example
 
 Input:
@@ -167,7 +162,6 @@ Output:
 
 ---
 
->>>>>>> 921a8ea (feat: complete ticket triage pipeline with AI worker and reply workflow)
 ## Ticket
 
 Subject:
