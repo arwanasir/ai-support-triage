@@ -32,8 +32,6 @@ Idempotency-Key: error-test-99
 }
 
 ---
-### NEW: GET ENDPOINTS (Pagination & Filtering)
-
 ### Test 4: Get Tickets (Defaults - Page 1, Limit 10)
 GET http://localhost:3000/tickets
 Content-Type: application/json
