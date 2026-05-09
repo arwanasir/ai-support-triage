@@ -1,7 +1,3 @@
-# ai-support-triage
-
-# ai-support-triage
-
 # AI Support Triage System
 
 A backend system for ingesting, deduplicating, and processing high-frequency support tickets via webhook ingestion and asynchronous AI triage.
@@ -240,6 +236,7 @@ DATABASE_URL=postgresql://postgres:postgres@localhost:5432/triage_db
 REDIS_URL=redis://localhost:6379
 PORT=3000
 NODE_ENV=development
+ANTHROPIC_API_KEY= your_claude_key
 ```
 
 2. Start Infrastructure
