@@ -8,6 +8,13 @@
       "when": 1777924940381,
       "tag": "0000_crazy_mindworm",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1778570332235,
+      "tag": "0001_spotty_the_leader",
+      "breakpoints": true
     }
   ]
 }

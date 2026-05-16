@@ -3,7 +3,8 @@ import {aiOutputSchema,AIServiceResult} from './ai-schema.js';
 import {buildTriagePrompt} from './prompts.js'
 
 const anthropic = new Anthropic({
-    apiKey:process.env.ANTHROPIC_API_KEY
+    apiKey:process.env.ANTHROPIC_API_KEY,
+    timeout:15000
 })
 
 export async function ticketAnalyser(subject:string,body:string):Promise<AIServiceResult>{
