@@ -42,3 +42,11 @@ export const agents_action = pgTable("agents_action", {
   output: jsonb("output"),
   createdAt: timestamp("created_at").defaultNow().notNull()
 });
+
+export const dlqJobs = pgTable("dlqJobs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  ticketId: uuid("ticket_id").notNull(),
+  jobId: text("job_id").notNull(),
+  errorMessage: text("error_message").notNull(),
+  failedAt: timestamp("failed_at").notNull().defaultNow(),
+});

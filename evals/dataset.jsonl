@@ -1,0 +1,25 @@
+{"subject":"Payment failed","body":"I was charged but my subscription is not active.","category":"billing","priority":"P1","sentiment":"negative"}
+{"subject":"Refund request","body":"I want my money back for the last transaction.","category":"billing","priority":"P1","sentiment":"negative"}
+{"subject":"Double charge","body":"I was charged twice for the same order.","category":"billing","priority":"P0","sentiment":"negative"}
+{"subject":"Invoice issue","body":"My invoice has wrong billing details.","category":"billing","priority":"P2","sentiment":"negative"}
+
+{"subject":"App not loading","body":"The app keeps crashing when I open it.","category":"technical","priority":"P1","sentiment":"negative"}
+{"subject":"Server error","body":"I keep getting a 500 error when logging in.","category":"technical","priority":"P0","sentiment":"negative"}
+{"subject":"Slow performance","body":"The website is very slow today.","category":"technical","priority":"P2","sentiment":"negative"}
+{"subject":"Bug report","body":"The submit button does not work on mobile.","category":"technical","priority":"P1","sentiment":"negative"}
+
+{"subject":"Account locked","body":"I cannot access my account anymore.","category":"account","priority":"P0","sentiment":"negative"}
+{"subject":"Password reset","body":"I forgot my password and cannot reset it.","category":"account","priority":"P1","sentiment":"neutral"}
+{"subject":"Email change","body":"I want to update my email address.","category":"account","priority":"P3","sentiment":"neutral"}
+
+{"subject":"New feature request","body":"Can you add dark mode to the app?","category":"feature_request","priority":"P3","sentiment":"neutral"}
+{"subject":"Mobile app idea","body":"Please create a mobile version of the dashboard.","category":"feature_request","priority":"P3","sentiment":"positive"}
+{"subject":"Export feature","body":"It would be great to export data as CSV.","category":"feature_request","priority":"P3","sentiment":"positive"}
+
+{"subject":"Confusing UI","body":"I don't understand how to navigate the dashboard.","category":"other","priority":"P2","sentiment":"negative"}
+{"subject":"General inquiry","body":"What does this service do exactly?","category":"other","priority":"P3","sentiment":"neutral"}
+{"subject":"Feedback","body":"Overall I like the product but it could improve.","category":"other","priority":"P3","sentiment":"positive"}
+{"subject":"Unclear error","body":"Something went wrong but I don't know what.","category":"other","priority":"P2","sentiment":"negative"}
+
+{"subject":"Login delay","body":"Login takes too long sometimes.","category":"technical","priority":"P2","sentiment":"negative"}
+{"subject":"Billing confusion","body":"I don't understand my last charge.","category":"billing","priority":"P2","sentiment":"neutral"}
