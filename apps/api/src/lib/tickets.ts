@@ -5,6 +5,16 @@ import { z } from 'zod';
 import { queue } from '../workers/queue.js';
 import { redis } from '../lib/redis.js'
 
+// TODO(arwa): this `ticketSchema` is a duplicate of the body schema you
+// already declared in routes/tickets.ts. Fastify validates the body
+// against the route schema BEFORE this handler runs, so re-parsing here
+// is wasted work and a second source of truth (if you change one, you
+// have to remember to change the other).
+//
+// Refactor: create `src/lib/schemas.ts`, export ONE `ticketBodySchema`
+// (and the inferred type), and import it both in the route and here.
+// Same DRY idea applies to the `replySchema` that's currently duplicated
+// across routes/tickets.ts and lib/handler.ts.
 const ticketSchema = z.object({
     subject: z.string(),
     body: z.string(),
