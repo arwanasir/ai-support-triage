@@ -3,7 +3,8 @@ import { tickets } from '../db/schema.js';
 import { InferSelectModel } from 'drizzle-orm';
 import { z } from 'zod';
 import { queue } from '../workers/queue.js';
-import { redis } from '../lib/redis.js'
+import { redis } from '../lib/redis.js';
+import { postTicketSchema } from '../lib/schema.js';
 
 // TODO(arwa): this `ticketSchema` is a duplicate of the body schema you
 // already declared in routes/tickets.ts. Fastify validates the body
@@ -15,11 +16,7 @@ import { redis } from '../lib/redis.js'
 // (and the inferred type), and import it both in the route and here.
 // Same DRY idea applies to the `replySchema` that's currently duplicated
 // across routes/tickets.ts and lib/handler.ts.
-const ticketSchema = z.object({
-    subject: z.string(),
-    body: z.string(),
-    customer_email: z.string().email(),
-})
+
 type Ticket = InferSelectModel<typeof tickets>;
 console.log("Incoming request hit");
 
@@ -43,7 +40,7 @@ export async function getExistingTicket(key: string): Promise<Ticket | null> {
 
 export async function createAndCasheTicket(key: string, ticketData: unknown): Promise<Ticket | null> {
 
-    const validateData = ticketSchema.parse(ticketData);
+    const validateData = postTicketSchema.parse(ticketData);
     const [newTicket] = await db.insert(tickets).values({
         subject: validateData.subject,
         body: validateData.body,
