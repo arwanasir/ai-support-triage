@@ -5,6 +5,9 @@ import { ilike, sql, desc } from 'drizzle-orm';
 import { z } from "zod";
 import { agents_action, tickets } from "../db/schema.js";
 import { eq } from "drizzle-orm";
+import { replySchema } from "./schema.js";
+
+type reply_schema = z.infer<typeof replySchema>
 
 export async function requestHandler(req: FastifyRequest, reply: FastifyReply) {
     try {
@@ -76,13 +79,6 @@ export async function getTicketsHandler(request: FastifyRequest) {
     };
 };
 
-
-const replySchema = z.object({
-    decision: z.enum(["approve", "edit", "reject"]),
-    reply_text: z.string().min(1)
-});
-
-type reply_schema = z.infer<typeof replySchema>
 
 export async function replyHandler(request: FastifyRequest, reply: FastifyReply) {
     const { id } = request.params as { id: string };

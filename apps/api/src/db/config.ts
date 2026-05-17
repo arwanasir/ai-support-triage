@@ -26,6 +26,6 @@ export const config = {
 // Queue, the Worker, and the idempotency cache, BullMQ enforces it and
 // the app crashes on boot. Set it once, here, done.
 export const redisconnection = {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: Number(process.env.REDIS_PORT) || 6379
+    redis_url: process.env.REDIS_URL
+
 }

@@ -8,7 +8,7 @@ export const GetTicketsSchema = {
   }),
   response: {
     200: z.object({
-      items: z.array(z.any()), 
+      items: z.array(z.any()),
       meta: z.object({
         totalCount: z.number(),
         totalPages: z.number(),
@@ -20,3 +20,14 @@ export const GetTicketsSchema = {
     })
   }
 };
+
+export const postTicketSchema = z.object({
+  subject: z.string(),
+  body: z.string(),
+  customer_email: z.string().email()
+})
+
+export const replySchema = z.object({
+  decision: z.enum(["approve", "edit", "reject"]),
+  reply_text: z.string().min(1)
+});

@@ -1,9 +1,9 @@
 import { db } from '../db/index.js';
 import { tickets } from '../db/schema.js';
-import { Redis } from 'ioredis';
 import { InferSelectModel } from 'drizzle-orm';
 import { z } from 'zod';
 import { queue } from '../workers/queue.js';
+import { redis } from '../lib/redis.js'
 
 // TODO(arwa): this `ticketSchema` is a duplicate of the body schema you
 // already declared in routes/tickets.ts. Fastify validates the body
@@ -23,14 +23,7 @@ const ticketSchema = z.object({
 type Ticket = InferSelectModel<typeof tickets>;
 console.log("Incoming request hit");
 
-// TODO(arwa): replace these 5 lines with:
-//   import { redis } from '../lib/redis.js';
-// See db/config.ts for the full pattern. (Copy 1 of 3.)
-const redis = new Redis({
-    host: process.env.REDIS_HOST || 'localhost',
-    port: Number(process.env.REDIS_PORT) || 6379,
 
-});
 
 export async function getExistingTicket(key: string): Promise<Ticket | null> {
     try {

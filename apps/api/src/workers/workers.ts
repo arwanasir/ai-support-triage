@@ -1,18 +1,10 @@
 import { Job, Worker } from "bullmq";
-import { Redis } from 'ioredis';
 import { ai_runs, dlqJobs, tickets } from "../db/schema.js";
 import { db } from "../db/index.js";
 import { eq } from "drizzle-orm";
 import { ticketAnalyser } from '../ai/ai-service.js'
+import { redis } from '../lib/redis.js'
 
-// TODO(arwa): replace these 5 lines with:
-//   import { redis } from '../lib/redis.js';
-// See db/config.ts for the full pattern. (Copy 3 of 3.)
-const redis = new Redis({
-    host: process.env.REDIS_HOST || 'localhost',
-    port: Number(process.env.REDIS_PORT) || 6379,
-
-});
 
 const worker = new Worker('triage', async (job: Job) => {
     const ticket_id = job.data.ticket_id;
