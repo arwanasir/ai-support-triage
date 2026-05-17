@@ -5,6 +5,16 @@ import { InferSelectModel } from 'drizzle-orm';
 import { z } from 'zod';
 import { queue } from '../workers/queue.js';
 
+// TODO(arwa): this `ticketSchema` is a duplicate of the body schema you
+// already declared in routes/tickets.ts. Fastify validates the body
+// against the route schema BEFORE this handler runs, so re-parsing here
+// is wasted work and a second source of truth (if you change one, you
+// have to remember to change the other).
+//
+// Refactor: create `src/lib/schemas.ts`, export ONE `ticketBodySchema`
+// (and the inferred type), and import it both in the route and here.
+// Same DRY idea applies to the `replySchema` that's currently duplicated
+// across routes/tickets.ts and lib/handler.ts.
 const ticketSchema = z.object({
     subject: z.string(),
     body: z.string(),
@@ -13,6 +23,9 @@ const ticketSchema = z.object({
 type Ticket = InferSelectModel<typeof tickets>;
 console.log("Incoming request hit");
 
+// TODO(arwa): replace these 5 lines with:
+//   import { redis } from '../lib/redis.js';
+// See db/config.ts for the full pattern. (Copy 1 of 3.)
 const redis = new Redis({
     host: process.env.REDIS_HOST || 'localhost',
     port: Number(process.env.REDIS_PORT) || 6379,
