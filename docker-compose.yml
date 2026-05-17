@@ -5,24 +5,26 @@ services:
       context: .
       dockerfile: apps/api/Dockerfile
     container_name: triage_app
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
+    restart: always
     volumes:
       - ./apps/api/src:/usr/src/app/apps/api/src
-    environment:
-      DATABASE_URL: postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
-      REDIS_URL: redis://redis:6379
 
-      NODE_ENV: development
-    env_file: .env
+    env_file:
+      - .env
+
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+    ports:
+      - "3000:3000"
+
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:3000/health" ]
+      test: [ "CMD-SHELL", "nc -z localhost 3000" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -38,16 +40,20 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
+
     ports:
       - "5432:5432"
+
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}" ]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
+
     networks:
       - triage-network
 
@@ -55,13 +61,34 @@ services:
     image: redis:7-alpine
     container_name: triage_redis
     restart: always
+
     ports:
       - "6379:6379"
+
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 3s
       retries: 5
+
+    networks:
+      - triage-network
+
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: triage_migrate
+
+    env_file:
+      - .env
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    command: npx drizzle-kit push
+
     networks:
       - triage-network
 

@@ -1,9 +1,9 @@
 import { db } from '../db/index.js';
 import { tickets } from '../db/schema.js';
-import { Redis } from 'ioredis';
 import { InferSelectModel } from 'drizzle-orm';
 import { z } from 'zod';
 import { queue } from '../workers/queue.js';
+import { redis } from '../lib/redis.js'
 
 const ticketSchema = z.object({
     subject: z.string(),
@@ -13,11 +13,7 @@ const ticketSchema = z.object({
 type Ticket = InferSelectModel<typeof tickets>;
 console.log("Incoming request hit");
 
-const redis = new Redis({
-    host: process.env.REDIS_HOST || 'localhost',
-    port: Number(process.env.REDIS_PORT) || 6379,
 
-});
 
 export async function getExistingTicket(key: string): Promise<Ticket | null> {
     try {
