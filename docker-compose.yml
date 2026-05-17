@@ -1,3 +1,25 @@
+# TODO(arwa): config setup — nice job adding `.env.example`! Two things to
+# tighten so a fresh clone actually boots end-to-end on `docker compose up`:
+#
+#  1. In `.env.example`, `REDIS_HOST=localhost` is wrong for the
+#     dockerized flow. When the `app` container talks to Redis, it
+#     resolves `redis` (the service name in this compose file) over the
+#     docker network — `localhost` inside the container points at the
+#     container itself, not the redis service. Change to:
+#         REDIS_HOST=redis
+#     (`localhost` would only be right if you ran `npm run dev` on your
+#     host machine against host-installed redis.)
+#     Bonus: shipping real dev defaults (e.g. DB_USER=postgres,
+#     DB_PASSWORD=postgres, DB_NAME=triage_db) instead of `<placeholders>`
+#     means `cp .env.example .env && docker compose up` just works,
+#     no editing required.
+#
+#  2. Migrations never run automatically. The DB container starts empty,
+#     so the first `POST /webhooks/tickets` crashes (table doesn't exist).
+#     Add a one-shot `migrate` service that runs after `db: service_healthy`
+#     and applies `drizzle/*.sql` — then `app` should `depends_on: migrate:
+#     condition: service_completed_successfully`. After that, the whole
+#     flow works end-to-end on a fresh clone with one command.
 name: triage-ai
 services:
   app:
