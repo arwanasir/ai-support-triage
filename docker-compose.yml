@@ -108,8 +108,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
-
-    command: npx drizzle-kit push
+    working_dir: /usr/src/app/apps/api
+    command: npx drizzle-kit push --config drizzle.config.ts
 
     networks:
       - triage-network
