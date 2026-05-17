@@ -5,14 +5,14 @@ import { z } from 'zod';
 import { queue } from '../workers/queue.js';
 import { redis } from '../lib/redis.js'
 
-// TODO(arwa): this is half-done — the previous TODO asked to extract
-// the body schema to lib/schema.ts (good, you did → `postTicketSchema`),
+// TODO(arwa): this is half-done. The previous TODO asked to extract
+// the body schema to lib/schema.ts (good, you did, as `postTicketSchema`),
 // but this inline `ticketSchema` is the duplicate that should now go.
 // Replace lines 18-22 with:
 //     import { postTicketSchema } from './schema.js';
 // (at the top), and on line 46 use:
 //     const validateData = postTicketSchema.parse(ticketData);
-// Then delete this `ticketSchema` const — and the now-unused `z` import.
+// Then delete this `ticketSchema` const and the now-unused `z` import.
 //
 // Also: line 24 is a stale debug log that runs once at module load.
 // Please remove.
