@@ -37,7 +37,8 @@ export async function requestHandler(req: FastifyRequest, reply: FastifyReply) {
             return reply.code(400).send({ error: "Invalid ticket data" });
         }
         console.error(error);
-        return reply.code(500).send({ error: error.message, stack: error.stack })
+        return reply.code(500).send({ error: "Internal server error" });
+
     }
 
 
@@ -99,7 +100,8 @@ export async function replyHandler(request: FastifyRequest, reply: FastifyReply)
     });
     await db.update(tickets).set({
         status: newStatus,
-        draftReply: reply_text
+        draftReply: reply_text,
+        updatedAt: new Date()
     }).where(eq(tickets.id, id));
 
     return reply.code(200).send({

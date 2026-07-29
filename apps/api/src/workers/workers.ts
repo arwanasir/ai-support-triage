@@ -29,7 +29,8 @@ const worker = new Worker('triage', async (job: Job) => {
         priority: result.analysis.priority,
         sentiment: result.analysis.sentiment,
         draftReply: result.analysis.suggested_reply,
-        status: 'awaiting_review'
+        status: 'awaiting_review',
+        updatedAt: new Date()
     }).where(eq(tickets.id, ticket_id));
 
     await db.insert(ai_runs).values({

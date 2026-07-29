@@ -1,7 +1,6 @@
 import { Redis } from 'ioredis';
-import { redisconnection } from '../db/config.js';
 
-export const redis = new Redis({
-    ...redisconnection,
+export const redis = new Redis(
+    process.env.REDIS_URL!, {
     maxRetriesPerRequest: null
 })

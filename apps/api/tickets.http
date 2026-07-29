@@ -1,4 +1,6 @@
+
 ### Test 1: Create a Ticket (The "Happy Path")
+
 POST http://localhost:3000/webhooks/tickets
 Content-Type: application/json
 Idempotency-Key: first-try-101
@@ -8,7 +10,28 @@ Idempotency-Key: first-try-101
   "body": "My connection has been dropping all morning.",
   "customer_email": "arwa@example.com"
 }
+### Test : Create another Ticket (The "Happy Path")
 
+POST http://localhost:3000/webhooks/tickets
+Content-Type: application/json
+Idempotency-Key: first-try
+
+{
+  "subject": "Internet is fast",
+  "body": "My connection is fine.",
+  "customer_email": "arwa@exmpl.com"
+}
+### Test : Create another Ticket (The "Happy Path")
+
+POST http://localhost:3000/webhooks/tickets
+Content-Type: application/json
+Idempotency-Key: first-try
+
+{
+  "subject": "Internet is fast",
+  "body": "My connection is fine.",
+  "customer_email": "arwa@exmpl.com"
+}
 
 ### Test 2: Duplicate Key (Testing Idempotency)
 POST http://localhost:3000/webhooks/tickets
@@ -47,3 +70,23 @@ Content-Type: application/json
 ### Test 7: Combined Search and Pagination
 GET http://localhost:3000/tickets?search=slow&page=1&limit=2
 Content-Type: application/json
+
+###human-in-the-loop
+
+POST http://localhost:3000/tickets/62018f24-5c46-4d15-8c0a-1f744f1509ee/reply
+Content-Type: application/json
+
+{
+  "decision": "approve",
+  "reply_text": "Thanks for reporting this. We're currently investigating the issue and will resolve it shortly."
+}
+
+###
+### Test 9: Reject Ticket
+POST http://localhost:3000/tickets/62018f24-5c46-4d15-8c0a-1f744f1509ee/reply
+Content-Type: application/json
+
+{
+  "decision": "reject",
+  "reply_text": "This issue does not require further action at this time."
+}
