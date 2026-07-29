@@ -3,11 +3,13 @@
   "compilerOptions": {
     "ignoreDeprecations": "6.0",
     // File Layout
-    // "rootDir": "./src",
-    // "outDir": "./dist",
+    "rootDir": ".",
+    "outDir": "./dist",
     "baseUrl": ".",
     "paths": {
-      "@ai/*": ["apps/api/src/ai/*"]
+      "@ai/*": [
+        "apps/api/src/ai/*"
+      ]
     },
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
@@ -16,18 +18,17 @@
     // "types": ["module"],
     // For nodejs:
     // "lib": ["esnext"],
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     // and npm install -D @types/node
-
     // Other Outputs
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
-
     // Stricter Typechecking Options
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
-
     // Style Options
     // "noImplicitReturns": true,
     // "noImplicitOverride": true,
@@ -35,7 +36,6 @@
     // "noUnusedParameters": true,
     // "noFallthroughCasesInSwitch": true,
     // "noPropertyAccessFromIndexSignature": true,
-
     // Recommended Options
     "strict": true,
     "jsx": "react-jsx",

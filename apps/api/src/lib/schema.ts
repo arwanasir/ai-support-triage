@@ -25,7 +25,7 @@ export const postTicketSchema = z.object({
   subject: z.string(),
   body: z.string(),
   customer_email: z.string().email()
-})
+});
 
 export const replySchema = z.object({
   decision: z.enum(["approve", "edit", "reject"]),

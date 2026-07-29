@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-07-26T03:55:03.223Z",
+  "dataset_size": 20,
+  "category_accuracy": 0.95,
+  "priority_accuracy": 0.75,
+  "sentiment_accuracy": 0.75,
+  "overall_accuracy": 0.8166666666666667
+}

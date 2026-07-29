@@ -1,5 +1,5 @@
 import fs from 'fs';
-import path from 'path';
+import { fileURLToPath } from 'url';
 
 type DatasetItem = {
   subject: string;
@@ -10,7 +10,7 @@ type DatasetItem = {
 };
 
 export function loadDataset(): DatasetItem[] {
-  const filePath = path.join(__dirname, "../dataset.jsonl");
+  const filePath = fileURLToPath(new URL("../dataset.jsonl", import.meta.url));
   const raw = fs.readFileSync(filePath, "utf-8");
 
   return raw
