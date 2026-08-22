@@ -4,12 +4,16 @@ import { use, useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchTicketsById, sendTicketReply, Ticket } from "@/lib/api";
 import { MOCK_TICKET } from "@/lib/mock-data";
+import { TicketAuditTimeline } from "@/components/ticket-audit-timeline";
+import { fetchTicketAuditTimeline } from "@/lib/api";
+import { EmptyState, ErrorState } from '@/components/page-states';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+// import { PriorityBadge } from "@/components/priority-badge";
 import Link from "next/link";
 
 function PriorityBadge({ priority }: { priority?: Ticket['priority'] }) {
@@ -48,12 +52,36 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
     // Fixed find fallback logic
     const mockFallback = MOCK_TICKET.find((t) => t.id === ticketid) || MOCK_TICKET[0];
 
-    const { data: ticket, isLoading } = useQuery({
+    const { data: ticket, isLoading, isError, error, refetch } = useQuery({
         queryKey: ['ticket', ticketid],
         queryFn: () => fetchTicketsById(ticketid),
         initialData: mockFallback,
     });
 
+    if (isError) {
+        return (
+            <div className="container mx-auto p-6 max-w-6xl">
+                <ErrorState
+                    title="Unable to load ticket details"
+                    message={error?.message || "Ticket could not be fetched."}
+                    onRetry={() => refetch()}
+                />
+            </div>
+        );
+    }
+    if (!isLoading && !ticket) {
+        return (
+            <div className="container mx-auto p-6 max-w-6xl">
+                <EmptyState
+                    icon="notFound"
+                    title="Ticket Not Found"
+                    description={`No support ticket found matching ID "${ticketid}". It may have been deleted.`}
+                    actionLabel="Return to Inbox"
+                    actionHref="/"
+                />
+            </div>
+        );
+    }
     const activeTicket = ticket || mockFallback;
     const [responseMessage, setResponseMessage] = useState(activeTicket?.draftReply || '');
 
@@ -111,6 +139,10 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
             action
         });
     };
+    const { data: auditLogs, isLoading: isLoadingAudit } = useQuery({
+        queryKey: ['ticket-audit', ticketid],
+        queryFn: () => fetchTicketAuditTimeline(ticketid),
+    });
 
     if (isLoading) {
         return <div className="p-8 text-center text-muted-foreground">Loading ticket details...</div>;
@@ -228,6 +260,9 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
                         </div>
                     </CardContent>
                 </Card>
+            </div>
+            <div className="pt-4">
+                <TicketAuditTimeline events={auditLogs || []} />
             </div>
         </div>
     );
